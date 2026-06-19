@@ -26,10 +26,8 @@ function body(req) {
 // A03.1 — SQL injection: user input concatenated into the query (auth bypass).
 function login(req, res, b) {
   const { username = '', password = '' } = b;
-  console.log(`login attempt user=${username} pass=${password}`); // A09.1 logs credentials
-  const q = "SELECT id, username, role FROM users WHERE username = '" + username +
-            "' AND password = '" + password + "'";
-  const user = db.prepare(q).get();
+  const q = "SELECT id, username, role FROM users WHERE username = ? AND password = ?";
+  const user = db.prepare(q).get(username, password);
   if (user) return send(res, 200, { ok: true, token: weakToken(user.username), user });
   send(res, 401, { ok: false, message: 'Invalid username or password.' });
 }
