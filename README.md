@@ -78,22 +78,20 @@ cm fix <finding-id>                # generate, validate & apply a patch
 
 ### Rolling back after a fix
 
-`cm fix` edits source in place (and leaves `.bak` / `.exploit/` artifacts); you may also
-have committed some experiments. To re-run the demo from scratch:
+The intended demo flow is: create a `cm-demo` branch, commit the `cm fix` result there,
+push it, and open a PR. To tear that down and start over:
 
 ```bash
-./rollback.sh
+./rollback.sh            # or: ./rollback.sh <branch>
 ```
 
-`rollback.sh` does three things:
-1. **Drops local commits that never went through a PR** — it keeps everything on
-   `origin/<default branch>` plus any commit belonging to an open or merged PR (via `gh`),
-   and resets HEAD back to that last PR-backed commit.
-2. **Reverts** any working-tree edits cm applied.
-3. **Removes** cm artifacts (`.exploit/`, `*.bak`, `.cm_project`, logs).
+`rollback.sh` does exactly three things:
+1. **Checks out `main`.**
+2. **Deletes the `cm-demo` branch locally** (`git branch -D`).
+3. **Deletes the `cm-demo` branch on GitHub** (`git push origin --delete`).
 
-It only rewrites *local* history — it never force-pushes the remote. (You can also wire the
-file-level reset into cm directly: set `vcs: {type: git}` in `~/.codemender/config.yaml`.)
+Both deletes are skipped gracefully if the branch isn't there, so the script is safe to
+re-run.
 
 ### A note on runtime
 
