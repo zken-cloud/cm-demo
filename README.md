@@ -78,16 +78,22 @@ cm fix <finding-id>                # generate, validate & apply a patch
 
 ### Rolling back after a fix
 
-`cm fix` edits source in place (and leaves `.bak` / `.exploit/` artifacts). To re-run the
-demo from scratch, restore the committed vulnerable baseline:
+`cm fix` edits source in place (and leaves `.bak` / `.exploit/` artifacts); you may also
+have committed some experiments. To re-run the demo from scratch:
 
 ```bash
-./rollback.sh        # = git checkout -- .  +  git clean -fd
+./rollback.sh
 ```
 
-The app ships as a git repo whose first commit *is* the vulnerable baseline, so rollback is
-instant and exact. (You can also wire this into cm directly — set `vcs: {type: git}` in
-`~/.codemender/config.yaml` and cm will reset the workspace itself.)
+`rollback.sh` does three things:
+1. **Drops local commits that never went through a PR** — it keeps everything on
+   `origin/<default branch>` plus any commit belonging to an open or merged PR (via `gh`),
+   and resets HEAD back to that last PR-backed commit.
+2. **Reverts** any working-tree edits cm applied.
+3. **Removes** cm artifacts (`.exploit/`, `*.bak`, `.cm_project`, logs).
+
+It only rewrites *local* history — it never force-pushes the remote. (You can also wire the
+file-level reset into cm directly: set `vcs: {type: git}` in `~/.codemender/config.yaml`.)
 
 ### A note on runtime
 
