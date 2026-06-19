@@ -85,11 +85,15 @@ push it, and open a PR. To tear that down and start over:
 ./rollback.sh            # or: ./rollback.sh <branch>
 ```
 
-`rollback.sh` does exactly three things:
-1. **Checks out `main`.**
-2. **Deletes the `cm-demo` branch locally** (`git branch -D`).
-3. **Deletes the `cm-demo` branch on GitHub** (`git push origin --delete`).
+`rollback.sh` does four things:
+1. **Restores the `cm fix` code changes** — discards any in-place edits (e.g. from
+   `cm fix --auto-apply`), returning tracked files to the committed vulnerable baseline.
+2. **Checks out `main`.**
+3. **Deletes the `cm-demo` branch locally** (`git branch -D`).
+4. **Deletes the `cm-demo` branch on GitHub** (`git push origin --delete`).
 
+The restore step covers the common case where `cm fix` patched the working tree in place
+(uncommitted); the branch deletes cover the case where the fix was committed onto `cm-demo`.
 Both deletes are skipped gracefully if the branch isn't there, so the script is safe to
 re-run.
 
