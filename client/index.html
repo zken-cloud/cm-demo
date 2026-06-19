@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LoginBox</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; background:#0f1220; color:#e8e8f0;
+           display:flex; min-height:100vh; align-items:center; justify-content:center; margin:0; }
+    .card { background:#1b1f36; padding:28px 32px; border-radius:12px; width:320px;
+            box-shadow:0 10px 40px rgba(0,0,0,.4); }
+    h1 { font-size:20px; margin:0 0 16px; }
+    input { width:100%; box-sizing:border-box; padding:10px; margin:6px 0; border-radius:8px;
+            border:1px solid #333a5c; background:#11142a; color:#fff; }
+    button { width:100%; padding:10px; margin-top:10px; border:0; border-radius:8px;
+             background:#5b8cff; color:#fff; font-weight:600; cursor:pointer; }
+    .msg { margin-top:14px; font-size:14px; }
+    .ok { color:#5bffa0; } .err { color:#ff6b6b; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    function LoginBox() {
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+      const [msg, setMsg] = useState(null);
+      async function submit(e) {
+        e.preventDefault();
+        const r = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await r.json();
+        setMsg({ ok: data.ok, text: data.message });
+      }
+      return (
+        <div className="card">
+          <h1>🔐 LoginBox</h1>
+          <form onSubmit={submit}>
+            <input placeholder="username" value={username}
+                   onChange={(e) => setUsername(e.target.value)} />
+            <input placeholder="password" type="password" value={password}
+                   onChange={(e) => setPassword(e.target.value)} />
+            <button type="submit">Sign in</button>
+          </form>
+          {msg && <div className={'msg ' + (msg.ok ? 'ok' : 'err')}>{msg.text}</div>}
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<LoginBox />);
+  </script>
+</body>
+</html>
