@@ -121,8 +121,14 @@ function loginGet(req, res, url) {
 // ────────── A08: Software & Data Integrity Failures ───────────────
 // A08.1 — code injection / insecure deserialization: eval of user input.
 function calc(req, res, b) {
-  const result = eval('' + b.expr); // arbitrary code execution
-  send(res, 200, { ok: true, result });
+  const expr = String(b.expr || '');
+  if (/^[0-9+\-*/%(). ]+$/.test(expr)) {
+    try {
+      const result = eval(expr);
+      return send(res, 200, { ok: true, result });
+    } catch {}
+  }
+  send(res, 400, { ok: false, message: 'Invalid or insecure expression' });
 }
 // A08.2 — prototype pollution via unsafe recursive merge of user input.
 function merge(dst, src) {
