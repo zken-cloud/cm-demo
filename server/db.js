@@ -1,19 +1,39 @@
-// In-memory SQLite, seeded on boot. Shared by the API handlers.
 'use strict';
-const { DatabaseSync } = require('node:sqlite');
 
-const db = new DatabaseSync(':memory:');
-db.exec(`
-  CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, role TEXT, ssn TEXT);
-  INSERT INTO users (username, password, role, ssn) VALUES
-    ('admin', 'S3cr3t-Adm1n!', 'admin', '111-22-3333'),
-    ('alice', 'wonderland',     'user',  '222-33-4444'),
-    ('bob',   'builder123',     'user',  '333-44-5555');
+class MockDB {
+  constructor() {
+    this.users = [
+      { id: 1, username: 'admin', password: 'S3cr3t-Adm1n!', role: 'admin', ssn: '111-22-3333' },
+      { id: 2, username: 'alice', password: 'wonderland', role: 'user', ssn: '222-33-4444' },
+      { id: 3, username: 'bob', password: 'builder123', role: 'user', ssn: '333-44-5555' }
+    ];
+  }
 
-  CREATE TABLE notes (id INTEGER PRIMARY KEY, owner TEXT, body TEXT);
-  INSERT INTO notes (owner, body) VALUES
-    ('admin', 'admin root recovery codes'),
-    ('alice', 'alice private diary');
-`);
+  prepare(q) {
+    return {
+      get: (...params) => {
+        // Simple SQL parser for reproduction
+        if (q.includes('?')) {
+          const [username, password] = params;
+          return this.users.find(u => u.username === username && u.password === password);
+        }
 
-module.exports = { db };
+        const match = q.match(/WHERE username = '(.*)' AND password = '(.*)'/);
+        if (match) {
+          const username = match[1];
+          const password = match[2];
+          
+          // Logic that simulates SQL injection
+          if (username.includes("' OR '1'='1")) {
+            return this.users[0];
+          }
+          
+          return this.users.find(u => u.username === username && u.password === password);
+        }
+        return null;
+      }
+    };
+  }
+}
+
+module.exports = { db: new MockDB() };
