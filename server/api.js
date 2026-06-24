@@ -7,7 +7,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { execSync } = require('node:child_process');
+const { execSync, execFileSync } = require('node:child_process');
 const { db } = require('./db');
 
 const PORT = process.env.PORT || 4000;
@@ -36,7 +36,10 @@ function login(req, res, b) {
 // A03.2 — OS command injection: user input passed to a shell.
 function dns(req, res, url) {
   const host = url.searchParams.get('host') || 'localhost';
-  const out = execSync('getent hosts ' + host).toString(); // shell metachars -> RCE
+  if (!/^[a-zA-Z0-9.:-]+$/.test(host)) {
+    return send(res, 400, { ok: false, message: 'Invalid host' });
+  }
+  const out = execFileSync('getent', ['hosts', host], { encoding: 'utf8' });
   send(res, 200, { ok: true, host, out });
 }
 
