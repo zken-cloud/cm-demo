@@ -107,8 +107,14 @@ function validateEmail(req, res, url) {
 // ─────────── A07: Identification & Auth Failures ──────────────────
 // A07.1 — forgeable auth: base64(user:role), no signature, blindly trusted.
 function whoami(req, res) {
-  const hdr = req.headers['x-auth'] || '';
-  const [u, role] = Buffer.from(hdr, 'base64').toString().split(':'); // unsigned -> forgeable
+  const raw = req.headers['x-auth'] || '';
+  const i = raw.lastIndexOf('.');
+  const payload = i >= 0 ? raw.slice(0, i) : '', sig = i >= 0 ? raw.slice(i + 1) : '';
+  const expected = crypto.createHmac('sha256', ENC_KEY).update(payload).digest('hex');
+  const valid = sig.length === expected.length &&
+                crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  if (!valid) return send(res, 401, { ok: false, message: 'Invalid or missing auth token.' });
+  const [u, role] = Buffer.from(payload, 'base64').toString().split(':');
   send(res, 200, { ok: true, username: u, role, admin: role === 'admin' });
 }
 // A07.2 — credentials in the URL / query string (logged, cached), no lockout.
