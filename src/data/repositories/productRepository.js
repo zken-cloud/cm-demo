@@ -5,12 +5,20 @@ const productCatalog = [
 ];
 
 exports.filterProducts = (query) => {
+    if (!query || typeof query !== 'object') {
+        return productCatalog;
+    }
     return productCatalog.filter(doc => {
         for (let k in query) {
+            // To prevent NoSQL query injection / logical query bypass,
+            // we do not support object-based query structures (like $ne, $in, etc.).
+            // Only primitive comparisons (strings, numbers, booleans) are permitted.
             if (typeof query[k] === 'object' && query[k] !== null) {
-                if (query[k]['$ne'] !== undefined && doc[k] !== query[k]['$ne']) return true;
-                if (query[k]['$in'] !== undefined && query[k]['$in'].includes(doc[k])) return true;
-            } else if (doc[k] !== query[k]) return false;
+                return false;
+            }
+            if (doc[k] !== query[k]) {
+                return false;
+            }
         }
         return true;
     });
