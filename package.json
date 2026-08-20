@@ -1,13 +1,17 @@
 {
-  "name": "loginbox-vuln-demo",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Intentionally vulnerable React + SQLite demo app (OWASP A03: SQL Injection) for CodeMender find/verify/fix demos.",
-  "type": "commonjs",
+  "name": "ecommerce-api",
+  "version": "2.0.0",
+  "description": "Modular Node.js / Express REST API for an e-commerce backend.",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server/api.js"
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
   },
   "engines": {
-    "node": ">=22.5"
-  }
+    "node": ">=16.0.0"
+  },
+  "private": true
 }
