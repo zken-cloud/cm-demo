@@ -1,11 +1,15 @@
 const usersDB = { '1001': { id: '1001', name: 'Alice', role: 'customer', balance: 50.0 } };
 
+const ALLOWED_FIELDS = ['name'];
+
 exports.updateUser = (id, payload) => {
     const user = usersDB[id];
     if (!user) return null;
     
-    Object.keys(payload).forEach(key => {
-        if (key !== 'id') user[key] = payload[key];
+    ALLOWED_FIELDS.forEach(field => {
+        if (payload && payload[field] !== undefined) {
+            user[field] = payload[field];
+        }
     });
     return user;
 };
